@@ -21,9 +21,9 @@ export type TreeDbRecord = {
     id: string;
     lat: string;
     lng: string;
-    artdtsch: string;
-    artbot: string;
-    gattungdeutsch: string;
+    art_dtsch: string;
+    art_bot: string;
+    gattung_deutsch: string;
     gattung: string;
     strname: string;
     kronedurch: string;
@@ -31,7 +31,7 @@ export type TreeDbRecord = {
     baumhoehe: string;
     geom: string;
     pflanzjahr: number;
-    gmlid: string;
+    external_ref: string;
     source: string;
 };
 

@@ -55,9 +55,9 @@ function convertTreeData(trees: TreeRecord[], source: string): TreeDbRecord[] {
             id: tree.internal_ref,
             lat: `${tree.lat}`,
             lng: `${tree.lon}`,
-            artdtsch: tree.common,
-            artbot: tree.species,
-            gattungdeutsch: genusDescription ? genusDescription.displayName : null,
+            art_dtsch: tree.common,
+            art_bot: tree.species,
+            gattung_deutsch: genusDescription ? genusDescription.displayName : null,
             gattung: tree.genus,
             strname: tree.address,
             kronedurch: `${tree.crown}`,
@@ -65,7 +65,7 @@ function convertTreeData(trees: TreeRecord[], source: string): TreeDbRecord[] {
             baumhoehe: `${tree.height}`,
             geom: `SRID=4326;POINT(${tree.lon} ${tree.lat})`,
             pflanzjahr: tree.planted,
-            gmlid: tree.ref,
+            external_ref: tree.ref,
             source
         };
     });
@@ -84,13 +84,13 @@ async function readOldTreeData(dbClient: Client, source: string): Promise<TreeDb
 async function compareTreeData(newTrees: TreeDbRecord[], oldTrees: TreeDbRecord[]): Promise<TreeDataComparisonResult> {
 
     const treesAreSame = (tree1: TreeDbRecord, tree2: TreeDbRecord): boolean =>
-        tree1.gmlid === tree2.gmlid && tree1.source === tree2.source
+        tree1.external_ref === tree2.external_ref && tree1.source === tree2.source
     const propertiesAreDifferent = (tree1: TreeDbRecord, tree2: TreeDbRecord): boolean =>
         tree1.lat !== tree2.lat
         || tree1.lng !== tree2.lng
-        || tree1.artdtsch !== tree2.artdtsch
-        || tree1.artbot !== tree2.artbot
-        || tree1.gattungdeutsch !== tree2.gattungdeutsch
+        || tree1.art_dtsch !== tree2.art_dtsch
+        || tree1.art_bot !== tree2.art_bot
+        || tree1.gattung_deutsch !== tree2.gattung_deutsch
         || tree1.gattung !== tree2.gattung
         || tree1.strname !== tree2.strname
         || tree1.kronedurch !== tree2.kronedurch
@@ -172,9 +172,9 @@ async function updateDb(dbClient: Client, trees: TreeDbRecord[]) {
             id text not null primary key,
             lat text,
             lng text,
-            artdtsch text,
-            artbot text,
-            gattungdeutsch text,
+            art_dtsch text,
+            art_bot text,
+            gattung_deutsch text,
             gattung text,
             strname text,
             kronedurch text,
@@ -182,20 +182,20 @@ async function updateDb(dbClient: Client, trees: TreeDbRecord[]) {
             baumhoehe text,
             pflanzjahr integer,
             geom geometry(Point, 4326),
-            gmlid text,
+            external_ref text,
             source text
         );
     `);
 
     await dbClient.query(`
-        insert into updated_trees_tmp (id, lat, lng, artdtsch, artbot, gattungdeutsch, gattung, strname, kronedurch, stammumfg,
-                           baumhoehe, pflanzjahr, geom, gmlid, source)
+        insert into updated_trees_tmp (id, lat, lng, art_dtsch, art_bot, gattung_deutsch, gattung, strname, kronedurch, stammumfg,
+                           baumhoehe, pflanzjahr, geom, external_ref, source)
         select id,
                lat,
                lng,
-               artdtsch,
-               artbot,
-               gattungdeutsch,
+               art_dtsch,
+               art_bot,
+               gattung_deutsch,
                gattung,
                strname,
                kronedurch,
@@ -203,7 +203,7 @@ async function updateDb(dbClient: Client, trees: TreeDbRecord[]) {
                baumhoehe,
                pflanzjahr,
                geom,
-               gmlid,
+               external_ref,
                source
         from json_populate_recordset(null::trees, $1::JSON)
     `, [JSON.stringify(trees)]);
@@ -213,9 +213,9 @@ async function updateDb(dbClient: Client, trees: TreeDbRecord[]) {
         set
             lat = updated_trees_tmp.lat, 
             lng = updated_trees_tmp.lng,
-            artdtsch = updated_trees_tmp.artdtsch,
-            artbot = updated_trees_tmp.artbot,
-            gattungdeutsch = updated_trees_tmp.gattungdeutsch,
+            art_dtsch = updated_trees_tmp.art_dtsch,
+            art_bot = updated_trees_tmp.art_bot,
+            gattung_deutsch = updated_trees_tmp.gattung_deutsch,
             gattung = updated_trees_tmp.gattung,
             strname = updated_trees_tmp.strname,
             kronedurch = updated_trees_tmp.kronedurch,
@@ -224,7 +224,7 @@ async function updateDb(dbClient: Client, trees: TreeDbRecord[]) {
             pflanzjahr = updated_trees_tmp.pflanzjahr,
             geom = updated_trees_tmp.geom
         from updated_trees_tmp
-        where updated_trees_tmp.gmlid = trees.gmlid and updated_trees_tmp.source = trees.source
+        where updated_trees_tmp.external_ref = trees.external_ref and updated_trees_tmp.source = trees.source
     `);
 
     await dbClient.query('drop table updated_trees_tmp;');
@@ -235,14 +235,14 @@ async function updateDb(dbClient: Client, trees: TreeDbRecord[]) {
 async function addToDb(dbClient: Client, trees: TreeDbRecord[]) {
 
     await dbClient.query(`
-        insert into trees (id, lat, lng, artdtsch, artbot, gattungdeutsch, gattung, strname, kronedurch, stammumfg,
-                           baumhoehe, pflanzjahr, geom, gmlid, source)
+        insert into trees (id, lat, lng, art_dtsch, art_bot, gattung_deutsch, gattung, strname, kronedurch, stammumfg,
+                           baumhoehe, pflanzjahr, geom, external_ref, source)
         select id,
                lat,
                lng,
-               artdtsch,
-               artbot,
-               gattungdeutsch,
+               art_dtsch,
+               art_bot,
+               gattung_deutsch,
                gattung,
                strname,
                kronedurch,
@@ -250,7 +250,7 @@ async function addToDb(dbClient: Client, trees: TreeDbRecord[]) {
                baumhoehe,
                pflanzjahr,
                geom,
-               gmlid,
+               external_ref,
                source
         from json_populate_recordset(null::trees, $1::JSON)
     `, [JSON.stringify(trees)]);

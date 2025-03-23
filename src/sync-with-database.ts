@@ -47,14 +47,14 @@ function convertTreeData(trees: TreeRecord[], source: string): TreeDbRecord[] {
     return trees.map(tree => {
 
         const genusDescription = GENUS_MAP.get(tree.genus);
-        if (!genusDescription) {
+        if (tree.genus && !genusDescription) {
             console.warn(`No genus description found for genus "${tree.genus}" (tree ${tree.ref})`);
         }
 
         return {
             id: tree.internal_ref,
-            lat: `${tree.lat}`,
-            lng: `${tree.lon}`,
+            lat: `${roundToSevenDigits(tree.lat)}`,
+            lng: `${roundToSevenDigits(tree.lon)}`,
             art_dtsch: tree.common,
             art_bot: tree.species,
             gattung_deutsch: genusDescription ? genusDescription.displayName : null,
@@ -73,11 +73,15 @@ function convertTreeData(trees: TreeRecord[], source: string): TreeDbRecord[] {
 
 
 async function readOldTreeData(dbClient: Client, source: string): Promise<TreeDbRecord[]> {
-    const { rows } = await dbClient.query(
+    const { rows } = await dbClient.query<TreeDbRecord>(
         'select * from trees where source = $1',
         [source]
     );
-    return rows;
+    return rows.map(row => ({
+        ...row,
+        lat: `${roundToSevenDigits(+row.lat)}`,
+        lng: `${roundToSevenDigits(+row.lng)}`,
+    }));
 }
 
 
@@ -291,6 +295,8 @@ async function run(source: string, importingStrategy: StrategyKey, importingOpti
 //run('sfm', 'magdeburg', ['2022', './data/2022/2022_SFM.csv'])
 //run('ls', 'magdeburg', ['2023', './data/2023/2023_Liegenschaftsservice.csv'])
 //run('sfm', 'magdeburg', ['2023', './data/2023/2023_SFM.csv'])
+// run('ls', 'magdeburg', ['2024', './data/2024/2024_Liegenschaftsservice.csv'])
+// run('sfm', 'magdeburg', ['2024', './data/2024/2024_SFM.csv'])
 
 run('test', 'test', [])
 
@@ -313,3 +319,8 @@ run('test', 'test', [])
         console.log('Done.');
     })
     .catch(console.error);
+
+
+function roundToSevenDigits(num: number): number {
+    return Math.round(num * 10000000) / 10000000;
+}

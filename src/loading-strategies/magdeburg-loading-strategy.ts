@@ -2,6 +2,8 @@ import { ILoadingStrategy } from './loading-strategy';
 import { TreeRecord } from '../model';
 import { readMagdeburg2022 } from '../read-magdeburg-2022';
 import { readMagdeburg2023 } from '../read-magdeburg-2023';
+import { readMagdeburg2024 } from '../read-magdeburg-2024';
+
 
 export class MagdeburgLoadingStrategy implements ILoadingStrategy {
 
@@ -13,6 +15,8 @@ export class MagdeburgLoadingStrategy implements ILoadingStrategy {
                 return Promise.resolve(readMagdeburg2022(loadingOptions[1]));
             case '2023':
                 return Promise.resolve(readMagdeburg2023(loadingOptions[1]));
+            case '2024':
+                return Promise.resolve(readMagdeburg2024(loadingOptions[1]));
 
             default:
                 throw new Error(`Unknown version ${version}`);
